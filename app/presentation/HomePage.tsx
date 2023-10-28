@@ -12,9 +12,9 @@ import {
 } from 'react-native';
 import React, { FC, useEffect, useState } from 'react';
 import { TodoModel } from '../domain/TodoModel';
-import { Ionicons } from '@expo/vector-icons';
 import { MaterialIcons } from '@expo/vector-icons';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+
 import {
   collection,
   doc,
@@ -72,10 +72,10 @@ const HomePage: FC = ({ navigation }: any) => {
           onPress={toggleTodoDoneStatus}
         >
           {item.isDone ? (
-            <Ionicons name="checkmark-circle" size={24} color="green" />
+            <MaterialIcons name="check-box" size={24} color="green" />
           ) : (
             <MaterialIcons
-              name="radio-button-unchecked"
+              name="check-box-outline-blank"
               size={24}
               color="black"
             />
@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
   },
   addTodoGroup: {
     flexDirection: 'row',
-    marginBottom: 16,
+    marginBottom: 24,
   },
   textInput: {
     flex: 1,
@@ -157,6 +157,8 @@ const styles = StyleSheet.create({
   todoTitle: {
     flex: 1,
     marginLeft: 8,
+    fontSize: 16,
+    lineHeight: 22,
   },
   separator: {
     height: 8,
