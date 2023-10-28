@@ -1,11 +1,16 @@
 import {
   Button,
   FlatList,
+  Keyboard,
+  KeyboardAvoidingView,
   ListRenderItemInfo,
+  Platform,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
 } from 'react-native';
 import React, { FC, useEffect, useState } from 'react';
@@ -32,7 +37,6 @@ const HomePage: FC = ({ navigation }: any) => {
     const todoCollectionRef = collection(FIREBASE_DB, 'todos');
     const unsub = onSnapshot(todoCollectionRef, {
       next: (snapshot) => {
-        console.log('UPDATED');
         const todos: TodoModel[] = [];
         snapshot.docs.forEach((doc) => {
           todos.push({ ...doc.data(), id: doc.id } as TodoModel);
@@ -44,9 +48,9 @@ const HomePage: FC = ({ navigation }: any) => {
     return unsub;
   }, []);
 
-  const addTodo = (title: string) => {
+  const addTodo = () => {
     addDoc(todoCollectionRef, {
-      title,
+      title: todoText,
       isDone: false,
     });
     setTodoText('');
@@ -91,7 +95,11 @@ const HomePage: FC = ({ navigation }: any) => {
   };
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior="padding"
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
+    >
       <FlatList
         style={styles.todoList}
         data={todos}
@@ -100,18 +108,14 @@ const HomePage: FC = ({ navigation }: any) => {
       />
       <View style={styles.addTodoGroup}>
         <TextInput
-          style={styles.input}
+          style={styles.textInput}
           onChangeText={setTodoText}
           value={todoText}
           placeholder="things to do"
         />
-        <Button
-          onPress={() => addTodo(todoText)}
-          title="Add Todo"
-          disabled={todoText === ''}
-        />
+        <Button onPress={addTodo} title="Add Todo" disabled={todoText === ''} />
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -120,26 +124,27 @@ export default HomePage;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingVertical: 24,
     paddingHorizontal: 16,
   },
   addTodoGroup: {
     flexDirection: 'row',
+    marginBottom: 16,
   },
-  input: {
+  textInput: {
     flex: 1,
     borderWidth: 1,
     borderRadius: 16,
     padding: 8,
   },
   todoList: {
-    marginBottom: 24,
+    flex: 1,
+    paddingVertical: 16,
   },
   todoCtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 8,
+    paddingVertical: 8,
   },
   todoLeftGroup: {
     flex: 1,
