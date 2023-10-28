@@ -1,16 +1,13 @@
 import {
   Button,
   FlatList,
-  Keyboard,
   KeyboardAvoidingView,
   ListRenderItemInfo,
   Platform,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  TouchableWithoutFeedback,
   View,
 } from 'react-native';
 import React, { FC, useEffect, useState } from 'react';
@@ -52,7 +49,8 @@ const HomePage: FC = ({ navigation }: any) => {
     addDoc(todoCollectionRef, {
       title: todoText,
       isDone: false,
-    });
+      createAt: new Date().toString(),
+    } as TodoModel);
     setTodoText('');
   };
 
@@ -82,7 +80,9 @@ const HomePage: FC = ({ navigation }: any) => {
               color="black"
             />
           )}
-          <Text style={styles.todoTitle}>{item.title}</Text>
+          <Text style={styles.todoTitle} numberOfLines={2}>
+            {item.title}
+          </Text>
         </TouchableOpacity>
         <MaterialCommunityIcons
           name="delete-forever"
@@ -105,6 +105,7 @@ const HomePage: FC = ({ navigation }: any) => {
         data={todos}
         renderItem={renderTodo}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
+        showsVerticalScrollIndicator={false}
       />
       <View style={styles.addTodoGroup}>
         <TextInput
@@ -139,6 +140,7 @@ const styles = StyleSheet.create({
   todoList: {
     flex: 1,
     paddingVertical: 16,
+    paddingHorizontal: 8,
   },
   todoCtn: {
     flexDirection: 'row',
@@ -150,8 +152,10 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
+    marginRight: 24,
   },
   todoTitle: {
+    flex: 1,
     marginLeft: 8,
   },
   separator: {
