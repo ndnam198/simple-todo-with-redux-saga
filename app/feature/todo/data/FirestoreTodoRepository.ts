@@ -1,29 +1,34 @@
+import {
+  CollectionReference,
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  onSnapshot,
+  updateDoc,
+} from 'firebase/firestore';
+import { FIREBASE_DB } from '../../../../firebaseConfig';
 import { TodoModel } from '../domain/TodoModel';
 import { TodoRepository } from './TodoRepository';
-import {
-  collection,
-  doc,
-  addDoc,
-  getDoc,
-  deleteDoc,
-  updateDoc,
-  onSnapshot,
-  getDocs,
-} from 'firebase/firestore';
-import { FIREBASE_DB } from '../../firebaseConfig';
 
 export class FirebaseTodoRepository implements TodoRepository {
-  todoCollectionRef = collection(FIREBASE_DB, 'todos');
+  private static _instance: FirebaseTodoRepository;
+  private constructor() {}
+
+  public static get Instance() {
+    return this._instance || (this._instance = new this());
+  }
 
   async getTodos(): Promise<TodoModel[]> {
-    const result = await getDocs(this.todoCollectionRef);
+    const result = await getDocs(collection(FIREBASE_DB, 'todos'));
     return result.docs.map(
       (doc) => ({ id: doc.id, ...doc.data() } as TodoModel)
     );
   }
 
   addTodo(todo: Partial<TodoModel>): Promise<any> {
-    return addDoc(this.todoCollectionRef, {
+    return addDoc(collection(FIREBASE_DB, 'todos'), {
       isDone: false,
       createAt: new Date().toString(),
       ...todo,
@@ -41,7 +46,7 @@ export class FirebaseTodoRepository implements TodoRepository {
   }
 
   addListener(onChange: (todos: TodoModel[]) => void) {
-    return onSnapshot(this.todoCollectionRef, {
+    return onSnapshot(collection(FIREBASE_DB, 'todos'), {
       next: (snapshot) => {
         const todos: TodoModel[] = [];
         snapshot.docs.forEach((doc) => {

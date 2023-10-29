@@ -1,4 +1,7 @@
+import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
+import React, { FC, useEffect, useRef, useState } from 'react';
 import {
+  ActivityIndicator,
   Button,
   FlatList,
   KeyboardAvoidingView,
@@ -10,59 +13,52 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, { FC, useEffect, useState } from 'react';
+import { useAppDispatch, useAppSelector } from '../../../Store';
+import { FirebaseTodoRepository } from '../data/FirestoreTodoRepository';
 import { TodoModel } from '../domain/TodoModel';
-import { MaterialIcons } from '@expo/vector-icons';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-
-import {
-  collection,
-  doc,
-  addDoc,
-  deleteDoc,
-  updateDoc,
-  onSnapshot,
-} from 'firebase/firestore';
-import { FIREBASE_DB } from '../../firebaseConfig';
+import { selectLoading, selectTodos, todoActions } from '../service/TodoSlice';
+import { watchTodoEvent } from '../service/TodoSagas';
 
 const HomePage: FC = ({ navigation }: any) => {
+  const dispatch = useAppDispatch();
   const [todoText, setTodoText] = useState('');
-  const [todos, setTodos] = useState([] as TodoModel[]);
-  const todoCollectionRef = collection(FIREBASE_DB, 'todos');
+  const firestoreTodoRepo = useRef(FirebaseTodoRepository.Instance);
+
+  const isLoading = useAppSelector(selectLoading);
+  const todos = useAppSelector(selectTodos);
 
   useEffect(() => {
-    const todoCollectionRef = collection(FIREBASE_DB, 'todos');
-    const unsub = onSnapshot(todoCollectionRef, {
-      next: (snapshot) => {
-        const todos: TodoModel[] = [];
-        snapshot.docs.forEach((doc) => {
-          todos.push({ ...doc.data(), id: doc.id } as TodoModel);
-        });
-        setTodos(todos);
-      },
+    const unsub = watchTodoEvent((todos) => {
+      dispatch(todoActions.setTodos({ todos }));
     });
 
     return unsub;
   }, []);
 
   const addTodo = () => {
-    addDoc(todoCollectionRef, {
+    const todoToAdd = {
       title: todoText,
       isDone: false,
       createAt: new Date().toString(),
-    } as TodoModel);
+    } as TodoModel;
+    dispatch(todoActions.addTodo({ todo: todoToAdd }));
     setTodoText('');
   };
 
   const renderTodo = ({ item }: ListRenderItemInfo<TodoModel>) => {
     const deleteTodo = () => {
-      const ref = doc(FIREBASE_DB, `todos/${item.id}`);
-      deleteDoc(ref);
+      dispatch(todoActions.deleteTodo({ id: item.id }));
     };
 
     const toggleTodoDoneStatus = () => {
-      const ref = doc(FIREBASE_DB, `todos/${item.id}`);
-      updateDoc(ref, { isDone: !item.isDone });
+      dispatch(
+        todoActions.updateTodo({
+          id: item.id,
+          todo: {
+            isDone: !item.isDone,
+          },
+        })
+      );
     };
 
     return (
@@ -100,6 +96,7 @@ const HomePage: FC = ({ navigation }: any) => {
       behavior="padding"
       keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
     >
+      {isLoading && <ActivityIndicator size="small" color={'black'} />}
       <FlatList
         style={styles.todoList}
         data={todos}
